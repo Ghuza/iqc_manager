@@ -1,0 +1,20 @@
+version: '3.3'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: 's-iqc-user'
+      POSTGRES_PASSWORD: 'password'
+    volumes:
+       - postgres-local:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - cisco
+networks:
+  cisco:
+   
+volumes:
+  postgres-local:
