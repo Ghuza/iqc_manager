@@ -1,9 +1,33 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { JwtGuard } from './util/guards/jwt.guard';
+import { AuthService } from './auth/auth.service';
+import { JwtStrategy } from './util/jwt.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { typeOrmAsyncConfig } from './config/typeorm.config';
+import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 
 @Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
+    AuthModule,
+    TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
+    UserModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useFactory: (ref) => new JwtGuard(ref),
+      inject: [Reflector, AuthService],
+    },
+    AppService,
+  ],
 })
 export class AppModule {}
