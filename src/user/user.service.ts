@@ -1,20 +1,10 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthService } from 'src/auth/auth.service';
-import { UpdateCompanyDto } from 'src/company/dto/update-company.dto';
 import { Roles } from 'src/util/types/roles.enum';
 import { Status } from 'src/util/types/status.enum';
-import { FindOneOptions, In, Not, Repository } from 'typeorm';
-import {
-  CreateCompanyAdmin,
-  CreateCompanyUsers,
-  CreateUserDto,
-} from './dto/create-user.dto';
-import {
-  updateCompanyAdmin,
-  UpdateCompanyUser,
-  UpdateUserDto,
-} from './dto/update-user.dto';
+import { In, Not, Repository } from 'typeorm';
+import { CreateCompanyAdmin, CreateUserDto } from './dto/create-user.dto';
+import { updateCompanyAdmin, UpdateCompanyUser } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -220,5 +210,18 @@ export class UserService {
       'companyId',
     ]);
     return updatedUserDetails;
+  }
+
+  async areInTheSameCompany(userIds: string[], companyId: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id IN (:...userIds)', { userIds })
+      .andWhere('user.companyId != :companyId', { companyId })
+      .getOne();
+
+    if (user) {
+      return false;
+    }
+    return true;
   }
 }
