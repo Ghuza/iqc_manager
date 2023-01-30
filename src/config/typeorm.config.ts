@@ -5,6 +5,7 @@ import {
 } from '@nestjs/typeorm';
 import { join } from 'path';
 import * as dotenv from 'dotenv';
+import { DataSource } from 'typeorm';
 
 dotenv.config();
 
@@ -21,31 +22,25 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
       password: process.env.DATABASE_PASSWORD,
       entities: [join(__dirname, '/../**/*.entity.{ts,js}')],
       synchronize: true,
-
-      migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
-      // cli: {
-      //   migrationsDir: __dirname + '/../database/migrations',
-      // },
+      // migrationsRun: true,
+      // migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
       logging: true,
     };
   },
 };
 
-// export const typeOrmConfig: TypeOrmModuleOptions = {
-//   type: 'postgres',
-//   url: process.env.DATABASE,
-//   entities: [join(__dirname, '/../**/*.entity.{ts,js}')],
-//   ssl: true,
-//   synchronize: true,
-//   extra: {
-//     charset: 'utf8mb4_unicode_ci',
-//     ssl: {
-//       rejectUnauthorized: false,
-//     },
-//   },
-//   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
-//   // cli: {
-//   //   migrationsDir: __dirname + '/../database/migrations',
-//   // },
-//   logging: true,
-// };
+const dataSource = new DataSource({
+  type: 'postgres',
+  username: process.env.DATABASE_USERNAME,
+  host: process.env.DATABASE_HOST,
+  port: parseInt(process.env.DATABASE_PORT),
+  password: process.env.DATABASE_PASSWORD,
+  entities: [join(__dirname, '/../**/*.entity.{ts,js}')],
+  synchronize: true,
+  migrationsRun: true,
+
+  migrations: ['dist/database/migrations/*{.ts,.js}'],
+  logging: true,
+});
+
+export default dataSource;
