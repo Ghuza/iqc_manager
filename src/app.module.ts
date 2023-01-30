@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
-import { APP_GUARD, Reflector } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtGuard } from './util/guards/jwt.guard';
 import { AuthService } from './auth/auth.service';
 import { JwtStrategy } from './util/jwt.strategy';
@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { CompanyModule } from './company/company.module';
 import { ProjectModule } from './project/project.module';
+import { GlobalExceptionFilter } from './util/common/global-exeption.filter';
 
 @Module({
   imports: [
@@ -30,6 +31,10 @@ import { ProjectModule } from './project/project.module';
       provide: APP_GUARD,
       useFactory: (ref) => new JwtGuard(ref),
       inject: [Reflector, AuthService],
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
     },
     AppService,
   ],
