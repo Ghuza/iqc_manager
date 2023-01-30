@@ -17,7 +17,7 @@ import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ItemQuery } from 'src/util/common/query';
-import { UUIDParam } from 'src/util/common/param';
+import { CompanyID, UUIDParam } from 'src/util/common/param';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Company')
@@ -36,15 +36,21 @@ export class CompanyController {
   @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Find all the company' })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get()
+  @Get('all')
   findAll(@Query() query: ItemQuery) {
     return this.companyService.findAll(query.page, query.limit);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.companyService.findOne(+id);
-  // }
+  @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Find one company' })
+  @Roles(UserRoles.PORTAL_ADMIN)
+  @UseGuards(RolesGuard)
+  @Get(':companyId')
+  findOne(@Param() param: CompanyID) {
+    return this.companyService.findOne({
+      id: param.companyId,
+    });
+  }
+
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Update company' })

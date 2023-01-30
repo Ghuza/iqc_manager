@@ -4,7 +4,9 @@ import { Status } from 'src/util/types/status.enum';
 import { CreateCompanyDto } from './create-company.dto';
 
 export class UpdateCompanyDto extends PartialType(CreateCompanyDto) {
-  @ApiProperty()
+  @ApiProperty({
+    default: Status.ACTIVE,
+  })
   @IsEnum([Status.ACTIVE, Status.INACTIVE])
   status: Status;
 }

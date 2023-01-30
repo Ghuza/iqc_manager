@@ -1,6 +1,7 @@
+import { User } from 'src/user/entities/user.entity';
 import { BaseEntity } from 'src/util/entities/base.entity';
 import { Status } from 'src/util/types/status.enum';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity()
 export class Company extends BaseEntity {
@@ -15,4 +16,7 @@ export class Company extends BaseEntity {
 
   @Column({ enum: [Status.ACTIVE, Status.INACTIVE], default: Status.ACTIVE })
   status: string;
+
+  @OneToMany(() => User, (user) => user.company)
+  users: User[];
 }

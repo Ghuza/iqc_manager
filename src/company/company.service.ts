@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Status } from 'src/util/types/status.enum';
+import { Not, Repository } from 'typeorm';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from './entities/company.entity';
@@ -35,17 +36,20 @@ export class CompanyService {
   }
 
   async remove(id: string) {
-    const company = await this.findOne({
+    const company = await this.companyRepository.update(id, {
+      status: Status.INACTIVE,
+    });
+    const updatedCompany = await this.findOne({
       id,
     });
-    if (!company) throw new HttpException('Company not found', 404);
-    await this.companyRepository.delete(id);
-    return company;
+    if (!updatedCompany) throw new HttpException('Company not found', 404);
+
+    return updatedCompany;
   }
 
   async findOne(options: Partial<Company>) {
     return await this.companyRepository.findOne({
-      where: options,
+      where: { ...options, status: Not(Status.INACTIVE) },
     });
   }
 }
