@@ -10,13 +10,22 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateCompanyAdmin, CreateUserDto } from './dto/create-user.dto';
-import { updateCompanyAdmin, UpdateUserDto } from './dto/update-user.dto';
+import {
+  ArrayOfUUID,
+  CreateCompanyAdmin,
+  CreateCompanyUsers,
+  CreateUserDto,
+} from './dto/create-user.dto';
+import {
+  updateCompanyAdmin,
+  UpdateCompanyUser,
+  UpdateUserDto,
+} from './dto/update-user.dto';
 import { Roles as UserRoles } from 'src/util/types/roles.enum';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/util/decorators/currentUser';
 import { User } from './entities/user.entity';
-import { ItemQuery } from 'src/util/common/query';
+import { CompanyQuery, ItemQuery } from 'src/util/common/query';
 import { RolesGuard } from 'src/util/guards/roles.guard';
 import { Roles } from 'src/util/decorators/roles.decorator';
 import { CompanyID, UUIDParam } from 'src/util/common/param';
@@ -27,6 +36,7 @@ import { CompanyID, UUIDParam } from 'src/util/common/param';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiTags('Portal Admin')
   @ApiOperation({ summary: 'Show yourself' })
   @Get('self]')
   findOneSelf(@CurrentUser() user: User) {
@@ -40,6 +50,7 @@ export class UserController {
     ]);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Find all users' })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
@@ -48,12 +59,13 @@ export class UserController {
     return this.userService.findAll(query.page, query.limit);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary: UserRoles.PORTAL_ADMIN + ' Find One ' + UserRoles.COMPANY_ADMIN,
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('portal_admin/:id')
+  @Get('portal-admin/:id')
   findOne(@Param() param: UUIDParam) {
     return this.userService.findOne({ id: param.id }, [
       'id',
@@ -66,16 +78,18 @@ export class UserController {
     ]);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary: UserRoles.PORTAL_ADMIN + ' Find all ' + UserRoles.COMPANY_ADMIN,
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('portal_admin')
+  @Get('portal-admin')
   findAllCompanyAdmin(@Query() query: ItemQuery) {
     return this.userService.findAllCompanyAdmin(query.page, query.limit);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary:
       UserRoles.PORTAL_ADMIN +
@@ -84,7 +98,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('portal_admin/all/:companyId')
+  @Get('portal-admin/all/:companyId')
   findOneCompanyAdmin(@Query() query: ItemQuery, @Param() param: CompanyID) {
     return this.userService.findOneCompanyAdmin(
       query.page,
@@ -93,22 +107,24 @@ export class UserController {
     );
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary: UserRoles.PORTAL_ADMIN + ' Create ' + UserRoles.COMPANY_ADMIN,
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Post('portal_admin')
+  @Post('portal-admin')
   CreateCompanyAdmin(@Body() user: CreateCompanyAdmin) {
     return this.userService.CreateCompanyAdmin(user);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary: UserRoles.PORTAL_ADMIN + ' Update ' + UserRoles.COMPANY_ADMIN,
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Patch('portal_admin/:id')
+  @Patch('portal-admin/:id')
   updateCompanyAdmin(
     @Body() user: updateCompanyAdmin,
     @Param() param: UUIDParam,
@@ -116,13 +132,83 @@ export class UserController {
     return this.userService.updateCompanyAdmin(user, param.id);
   }
 
+  @ApiTags('Portal Admin')
   @ApiOperation({
     summary: UserRoles.PORTAL_ADMIN + ' Delete ' + UserRoles.COMPANY_ADMIN,
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Delete('portal_admin/:id')
+  @Delete('portal-admin/:id')
   deleteCompanyAdmin(@Param() param: UUIDParam) {
     return this.userService.deleteCompanyAdmin(param.id);
+  }
+
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' add users in the company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Post('company-admin/users/crate-many')
+  addUsersBulk(
+    @CurrentUser() user: User,
+    @Body() bulkUser: CreateCompanyUsers,
+  ) {
+    return this.userService.addUsersBulk(user.companyId, bulkUser.users);
+  }
+
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' remove users from the company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Post('company-admin/users/remove-many')
+  removeUserBulk(@CurrentUser() user: User, @Body() body: ArrayOfUUID) {
+    return this.userService.RemoveUsersBulk(user.companyId, body.ids);
+  }
+
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' Get users from the company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Get('company-admin/users/all')
+  getCurrentCompanyUsers(
+    @CurrentUser() user: User,
+    @Query() query: CompanyQuery,
+  ) {
+    return this.userService.getCurrentCompanyUsers(
+      query.page,
+      query.limit,
+      query.status,
+      user.companyId,
+    );
+  }
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' restore users of the company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Post('company-admin/users/restore')
+  restoreUsersBulk(@CurrentUser() user: User, @Body() body: ArrayOfUUID) {
+    return this.userService.restoreUsersBulk(user.companyId, body.ids);
+  }
+
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' update users of the company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Patch('company-admin/user/:id')
+  updateUserOfCompany(
+    @CurrentUser() user: User,
+    @Body() body: UpdateCompanyUser,
+    @Param() param: UUIDParam,
+  ) {
+    return this.userService.updateUserOfCompany(user.companyId, body, param.id);
   }
 }

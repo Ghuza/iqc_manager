@@ -20,4 +20,16 @@ export class CompanyAdmin extends PickType(CreateCompanyAdmin, [
   role: string;
 }
 
+export class CompanyUser extends PickType(CreateUserDto, [
+  'email',
+  'firstName',
+  'lastName',
+]) {
+  @ApiProperty()
+  @IsEnum([Status.ACTIVE, Status.INACTIVE])
+  status: Status;
+}
+
 export class updateCompanyAdmin extends PartialType(CompanyAdmin) {}
+
+export class UpdateCompanyUser extends PartialType(CompanyUser) {}

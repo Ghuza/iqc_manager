@@ -56,7 +56,6 @@ export class AuthService {
   }
 
   async findOne(options: Partial<User>, fields: (keyof User)[]) {
-    console.log('start validation');
     const user = await this.userService.findOne(options, fields);
     return user;
   }
