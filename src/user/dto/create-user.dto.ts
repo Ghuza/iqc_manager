@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsString, IsUUID } from 'class-validator';
+import { Status } from 'src/util/types/status.enum';
 
 export class CreateUserDto {
   @ApiProperty()
@@ -17,4 +18,10 @@ export class CreateUserDto {
   @ApiProperty()
   @IsString()
   password: string;
+}
+
+export class CreateCompanyAdmin extends CreateUserDto {
+  @ApiProperty()
+  @IsUUID()
+  companyId: string;
 }
