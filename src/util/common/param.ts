@@ -11,3 +11,9 @@ export class CompanyID {
   @IsUUID()
   public companyId: string;
 }
+
+export class ProjectId {
+  @ApiProperty()
+  @IsUUID()
+  public projectId: string;
+}

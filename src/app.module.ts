@@ -12,6 +12,7 @@ import { typeOrmAsyncConfig } from './config/typeorm.config';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { CompanyModule } from './company/company.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CompanyModule } from './company/company.module';
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     UserModule,
     CompanyModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [

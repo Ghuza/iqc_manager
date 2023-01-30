@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, Max, Min } from 'class-validator';
+import { IsEnum, IsNumber, Max, Min } from 'class-validator';
 import { toNumber } from 'lodash';
+import { Status } from '../types/status.enum';
 
 export class ItemQuery {
   @ApiProperty({ default: 1 })
@@ -15,4 +16,10 @@ export class ItemQuery {
   @Transform(({ value }) => toNumber(value))
   @Max(20)
   public limit: number;
+}
+
+export class CompanyQuery extends ItemQuery {
+  @ApiProperty({ default: Status.ACTIVE })
+  @IsEnum([Status.ACTIVE, Status.INACTIVE])
+  status: Status;
 }

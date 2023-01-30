@@ -18,6 +18,8 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ItemQuery } from 'src/util/common/query';
 import { CompanyID, UUIDParam } from 'src/util/common/param';
+import { CurrentUser } from 'src/util/decorators/currentUser';
+import { User } from 'src/user/entities/user.entity';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Company')
@@ -51,15 +53,21 @@ export class CompanyController {
     });
   }
 
-  @Roles(UserRoles.PORTAL_ADMIN)
+  @ApiTags('Company Admin')
+  @ApiTags('Portal Admin')
+  @Roles(UserRoles.PORTAL_ADMIN, UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
-  @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Update company' })
+  @ApiOperation({
+    summary:
+      [UserRoles.PORTAL_ADMIN, UserRoles.COMPANY_ADMIN] + ' Update company',
+  })
   @Patch(':id')
   update(
     @Param() param: UUIDParam,
     @Body() updateCompanyDto: UpdateCompanyDto,
+    @CurrentUser() user: User,
   ) {
-    return this.companyService.update(param.id, updateCompanyDto);
+    return this.companyService.update(param.id, updateCompanyDto, user);
   }
 
   @Roles(UserRoles.PORTAL_ADMIN)
@@ -68,5 +76,16 @@ export class CompanyController {
   @Delete(':id')
   remove(@Param() param: UUIDParam) {
     return this.companyService.remove(param.id);
+  }
+
+  @ApiTags('Company Admin')
+  @ApiOperation({
+    summary: UserRoles.COMPANY_ADMIN + ' show Own Company',
+  })
+  @Roles(UserRoles.COMPANY_ADMIN)
+  @UseGuards(RolesGuard)
+  @Get('show/company')
+  showOwnCompany(@CurrentUser() user: User) {
+    return this.companyService.showOwnCompany(user.companyId);
   }
 }
