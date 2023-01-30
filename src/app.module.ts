@@ -14,6 +14,7 @@ import { UserModule } from './user/user.module';
 import { CompanyModule } from './company/company.module';
 import { ProjectModule } from './project/project.module';
 import { GlobalExceptionFilter } from './util/common/global-exeption.filter';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { GlobalExceptionFilter } from './util/common/global-exeption.filter';
     UserModule,
     CompanyModule,
     ProjectModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
