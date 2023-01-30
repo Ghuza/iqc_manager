@@ -6,3 +6,8 @@ export class UUIDParam {
   @IsUUID()
   public id: string;
 }
+export class CompanyID {
+  @ApiProperty()
+  @IsUUID()
+  public companyId: string;
+}
