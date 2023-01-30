@@ -1,8 +1,9 @@
 import { Exclude } from 'class-transformer';
+import { Company } from 'src/company/entities/company.entity';
 import { BaseEntity } from 'src/util/entities/base.entity';
 import { Roles } from 'src/util/types/roles.enum';
 import { Status } from 'src/util/types/status.enum';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne } from 'typeorm';
 
 @Entity()
 export class User extends BaseEntity {
@@ -32,4 +33,11 @@ export class User extends BaseEntity {
     default: Roles.USER,
   })
   role: string;
+
+  @Column({ name: 'company_id', nullable: true })
+  companyId: string;
+
+  @ManyToOne(() => Company, (company) => company.users)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 }
