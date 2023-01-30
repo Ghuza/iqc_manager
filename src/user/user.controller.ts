@@ -53,7 +53,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('company-admin/:id')
+  @Get('portal_admin/:id')
   findOne(@Param() param: UUIDParam) {
     return this.userService.findOne({ id: param.id }, [
       'id',
@@ -71,7 +71,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('company-admin')
+  @Get('portal_admin')
   findAllCompanyAdmin(@Query() query: ItemQuery) {
     return this.userService.findAllCompanyAdmin(query.page, query.limit);
   }
@@ -84,7 +84,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Get('company-admin/all/:companyId')
+  @Get('portal_admin/all/:companyId')
   findOneCompanyAdmin(@Query() query: ItemQuery, @Param() param: CompanyID) {
     return this.userService.findOneCompanyAdmin(
       query.page,
@@ -98,7 +98,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Post('company-admin')
+  @Post('portal_admin')
   CreateCompanyAdmin(@Body() user: CreateCompanyAdmin) {
     return this.userService.CreateCompanyAdmin(user);
   }
@@ -108,7 +108,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Patch('company-admin/:id')
+  @Patch('portal_admin/:id')
   updateCompanyAdmin(
     @Body() user: updateCompanyAdmin,
     @Param() param: UUIDParam,
@@ -121,7 +121,7 @@ export class UserController {
   })
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
-  @Delete('company-admin/:id')
+  @Delete('portal_admin/:id')
   deleteCompanyAdmin(@Param() param: UUIDParam) {
     return this.userService.deleteCompanyAdmin(param.id);
   }
