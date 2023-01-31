@@ -17,7 +17,7 @@ import { RolesGuard } from 'src/util/guards/roles.guard';
 import { Roles } from 'src/util/decorators/roles.decorator';
 import { Roles as UserRoles } from 'src/util/types/roles.enum';
 import { CurrentUser } from 'src/util/decorators/currentUser';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 import { ItemQuery, QueryOwnProjects } from 'src/util/common/query';
 import { ProjectId, UUIDParam } from 'src/util/common/param';
 
