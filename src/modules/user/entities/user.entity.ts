@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { Company } from 'src/company/entities/company.entity';
-import { Project } from 'src/project/entities/project.entity';
+import { Company } from 'src/modules/company/entities/company.entity';
+import { Project } from 'src/modules/project/entities/project.entity';
 import { BaseEntity } from 'src/util/entities/base.entity';
 import { Roles } from 'src/util/types/roles.enum';
 import { Status } from 'src/util/types/status.enum';

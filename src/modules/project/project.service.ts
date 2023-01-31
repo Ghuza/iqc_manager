@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InstanceLinksHost } from '@nestjs/core/injector/instance-links-host';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/modules/user/user.service';
 import { In, Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';

@@ -19,7 +19,7 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ItemQuery } from 'src/util/common/query';
 import { CompanyID, UUIDParam } from 'src/util/common/param';
 import { CurrentUser } from 'src/util/decorators/currentUser';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Company')
