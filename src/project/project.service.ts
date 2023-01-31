@@ -70,15 +70,26 @@ export class ProjectService {
   async getMyProject(
     page: number,
     limit: number,
+    projectName: string,
+    status: string,
     userId: string,
     companyId: string,
   ) {
-    return await this.projectToUserRepository.find({
-      where: { userId },
-      skip: (page - 1) * limit,
-      take: limit,
-      relations: ['project'],
-    });
+    const [data, total] = await this.projectToUserRepository
+      .createQueryBuilder('projectToUser')
+      .leftJoinAndSelect('projectToUser.project', 'project')
+      .leftJoinAndSelect('projectToUser.user', 'user')
+      .where('user.id = :userId', { userId })
+      .andWhere('project.companyId = :companyId', { companyId })
+      .andWhere('project.name ILIKE :projectName', {
+        projectName: `%${projectName}%`,
+      })
+      .andWhere('project.status = :status', { status })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total };
   }
 
   async assignUsersToProject(

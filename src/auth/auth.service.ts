@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
   async create(newUser: CreateAuthDto) {
     const userExists = await this.userService.findOne({
-      email: newUser.email,
+      email: newUser.email.toLowerCase(),
     });
 
     if (userExists) {
@@ -23,6 +23,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(newUser.password, 12);
     const user = await this.userService.createUser({
       ...newUser,
+      email: newUser.email.toLowerCase(),
       password: hashedPassword,
     });
     return {
@@ -34,7 +35,7 @@ export class AuthService {
   async signIn(signUpUser: SignInDto) {
     const user = await this.userService.findOne(
       {
-        email: signUpUser.email,
+        email: signUpUser.email.toLowerCase(),
       },
       ['id', 'email', 'password', 'firstName', 'lastName', 'role'],
     );

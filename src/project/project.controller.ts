@@ -18,7 +18,7 @@ import { Roles } from 'src/util/decorators/roles.decorator';
 import { Roles as UserRoles } from 'src/util/types/roles.enum';
 import { CurrentUser } from 'src/util/decorators/currentUser';
 import { User } from 'src/user/entities/user.entity';
-import { ItemQuery } from 'src/util/common/query';
+import { ItemQuery, QueryOwnProjects } from 'src/util/common/query';
 import { ProjectId, UUIDParam } from 'src/util/common/param';
 
 @ApiBearerAuth('Authorization')
@@ -43,10 +43,12 @@ export class ProjectController {
   @Roles(UserRoles.USER)
   @UseGuards(RolesGuard)
   @Get('my-projects')
-  getMyProject(@Query() query: ItemQuery, @CurrentUser() user: User) {
+  getMyProject(@Query() query: QueryOwnProjects, @CurrentUser() user: User) {
     return this.projectService.getMyProject(
       query.page,
       query.limit,
+      query.projectName,
+      query.status,
       user.id,
       user.companyId,
     );
