@@ -9,7 +9,6 @@ import { DataSource } from 'typeorm';
 
 dotenv.config();
 
-console.log(process.env.DATABASE_USERNAME);
 export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
   inject: [ConfigService],
