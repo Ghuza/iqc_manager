@@ -18,11 +18,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
-
-    // write error log to influxdb and read it from grafana
-
+    const message =
+      exception instanceof HttpException ? exception.getResponse() : exception;
+    const isDev = process.env.NODE_ENV === 'development';
     response.status(status).json({
       statusCode: status,
+      message: isDev ? message : 'Something went wrong',
       timestamp: new Date().toISOString(),
       path: request.url,
     });

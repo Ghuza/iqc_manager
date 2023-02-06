@@ -31,14 +31,13 @@ import { Roles } from 'src/util/decorators/roles.decorator';
 import { CompanyID, UUIDParam } from 'src/util/common/param';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiTags('Portal Admin')
   @ApiOperation({ summary: 'Show yourself' })
-  @Get('self]')
+  @Get('self')
   findOneSelf(@CurrentUser() user: User) {
     return this.userService.findOne({ id: user.id }, [
       'id',

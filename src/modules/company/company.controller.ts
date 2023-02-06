@@ -61,21 +61,21 @@ export class CompanyController {
     summary:
       [UserRoles.PORTAL_ADMIN, UserRoles.COMPANY_ADMIN] + ' Update company',
   })
-  @Patch(':id')
+  @Patch(':companyId')
   update(
-    @Param() param: UUIDParam,
+    @Param() param: CompanyID,
     @Body() updateCompanyDto: UpdateCompanyDto,
     @CurrentUser() user: User,
   ) {
-    return this.companyService.update(param.id, updateCompanyDto, user);
+    return this.companyService.update(param.companyId, updateCompanyDto, user);
   }
 
   @Roles(UserRoles.PORTAL_ADMIN)
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' delete company' })
-  @Delete(':id')
-  remove(@Param() param: UUIDParam) {
-    return this.companyService.remove(param.id);
+  @Delete(':companyId')
+  remove(@Param() param: CompanyID) {
+    return this.companyService.remove(param.companyId);
   }
 
   @ApiTags('Company Admin')

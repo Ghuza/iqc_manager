@@ -1,9 +1,8 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/modules/user/entities/user.entity';
 import { UserService } from 'src/modules/user/user.service';
-import { CreateAuthDto, SignInDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { SignInDto } from './dto/create-auth.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -12,25 +11,6 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
-  async create(newUser: CreateAuthDto) {
-    const userExists = await this.userService.findOne({
-      email: newUser.email.toLowerCase(),
-    });
-
-    if (userExists) {
-      throw new HttpException('This Email Already Used', 400);
-    }
-    const hashedPassword = await bcrypt.hash(newUser.password, 12);
-    const user = await this.userService.createUser({
-      ...newUser,
-      email: newUser.email.toLowerCase(),
-      password: hashedPassword,
-    });
-    return {
-      ...user,
-      token: this.jwtService.sign({ id: user.id, email: user.email }),
-    };
-  }
 
   async signIn(signUpUser: SignInDto) {
     const user = await this.userService.findOne(
@@ -46,7 +26,10 @@ export class AuthService {
     );
 
     if (!user || !isPasswordValid) {
-      throw new HttpException('User email or password is not correct ', 404);
+      throw new HttpException(
+        'User email or password is not correct ',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return {
