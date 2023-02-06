@@ -1,4 +1,3 @@
-// create nestjs global exception filter
 import {
   Catch,
   ExceptionFilter,
