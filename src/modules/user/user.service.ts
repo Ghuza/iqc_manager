@@ -1,5 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Roles } from 'src/util/types/roles.enum';
 import { Status } from 'src/util/types/status.enum';
 import { In, Not, Repository } from 'typeorm';
@@ -7,24 +6,14 @@ import { CreateCompanyAdmin, CreateUserDto } from './dto/create-user.dto';
 import { updateCompanyAdmin, UpdateCompanyUser } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { UsersRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-  ) {}
-
-  async createUser(user: CreateUserDto) {
-    const newUser = this.userRepository.create(user);
-    const createdUser = await this.userRepository.save(newUser);
-    return { ...createdUser, password: undefined };
-  }
+  constructor(private readonly userRepo: UsersRepository) {}
 
   async findAll(page: number, limit: number) {
-    const [data, total] = await this.userRepository.findAndCount({
-      where: {
-        status: Not(Status.INACTIVE),
-      },
+    const [data, total] = await this.userRepo.findAll({
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -32,26 +21,28 @@ export class UserService {
   }
 
   findOne(options: Partial<User>, fields: (keyof User)[] = ['id']) {
-    return this.userRepository.findOne({
-      where: { ...options, status: Not(Status.INACTIVE) },
+    return this.userRepo.findByCondition({
+      where: { ...options },
       select: fields,
     });
   }
 
   async CreateCompanyAdmin(companyAdmin: CreateCompanyAdmin) {
-    const userExists = await this.findOne({
-      email: companyAdmin.email,
+    const userExists = await this.userRepo.findByCondition({
+      where: { email: companyAdmin.email },
     });
 
     if (userExists) {
-      throw new HttpException('This Email Already Used', 400);
+      throw new HttpException('This Email Already Used', HttpStatus.CONFLICT);
     }
     const hashedPassword = await bcrypt.hash(companyAdmin.password, 12);
-    const user = await this.userRepository.save({
-      ...companyAdmin,
-      role: Roles.COMPANY_ADMIN,
-      password: hashedPassword,
-    });
+    const user = await this.userRepo.save([
+      {
+        ...companyAdmin,
+        role: Roles.COMPANY_ADMIN,
+        password: hashedPassword,
+      },
+    ]);
     return {
       ...user,
       password: undefined,
@@ -59,7 +50,7 @@ export class UserService {
   }
 
   async findAllCompanyAdmin(page: number, limit: number) {
-    const [data, total] = await this.userRepository.findAndCount({
+    const [data, total] = await this.userRepo.findAll({
       where: { role: Roles.COMPANY_ADMIN, status: Not(Status.INACTIVE) },
       skip: (page - 1) * limit,
       take: limit,
@@ -68,11 +59,10 @@ export class UserService {
   }
 
   async findOneCompanyAdmin(page: number, limit: number, companyId: string) {
-    const [data, total] = await this.userRepository.findAndCount({
+    const [data, total] = await this.userRepo.findAll({
       where: {
         role: Roles.COMPANY_ADMIN,
         companyId,
-        status: Not(Status.INACTIVE),
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -81,20 +71,32 @@ export class UserService {
   }
 
   async updateCompanyAdmin(user: updateCompanyAdmin, id: string) {
-    const updatedUser = await this.userRepository.update(id, user);
-    const updatedUserDetails = await this.findOne({ id }, [
-      'id',
-      'firstName',
-      'lastName',
-      'email',
-      'role',
-      'status',
-      'companyId',
-    ]);
+    const updatedUser = await this.userRepo.update(id, user);
+    const updatedUserDetails = await this.userRepo.findByCondition({
+      where: { id },
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+        'role',
+        'status',
+        'companyId',
+      ],
+    });
+
     return updatedUserDetails;
   }
   async deleteCompanyAdmin(id: string) {
-    const updatedUser = await this.userRepository.update(id, {
+    const user = await this.userRepo.findByCondition({
+      where: { id },
+    });
+
+    if (user.status === Status.INACTIVE) {
+      throw new HttpException('User Already Deleted', HttpStatus.BAD_GATEWAY);
+    }
+
+    const updatedUser = await this.userRepo.update(id, {
       status: Status.INACTIVE,
     });
     const updatedUserDetails = await this.findOne({ id }, [
@@ -110,11 +112,14 @@ export class UserService {
   }
   async addUsersBulk(companyId: string, users: Partial<CreateUserDto[]>) {
     const emails = users.map((user) => user.email);
-    const usersExists = await this.userRepository.findOne({
+    const usersExists = await this.userRepo.findByCondition({
       where: { email: In(emails) },
     });
     if (usersExists) {
-      throw new HttpException(`${usersExists.email} Already Used`, 400);
+      throw new HttpException(
+        `${usersExists.email} Already Used`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
     const bulkUsers = users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password, 12);
@@ -127,23 +132,23 @@ export class UserService {
     });
     const allUsers = await Promise.all(bulkUsers);
 
-    const usersToSave = this.userRepository.create(allUsers);
+    const usersToSave = this.userRepo.create(allUsers);
 
-    return await this.userRepository.save(usersToSave);
+    return await this.userRepo.save(usersToSave);
   }
 
   async RemoveUsersBulk(companyId: string, ids: string[]) {
-    const users = await this.userRepository.findOne({
+    const users = await this.userRepo.findByCondition({
       where: { id: In(ids), companyId: Not(companyId) },
     });
     if (users) {
       throw new HttpException(
         `User with email: ${users.email} Not Found in this company`,
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
-    const updatedUsers = await this.userRepository.update(ids, {
+    const updatedUsers = await this.userRepo.update(ids, {
       status: Status.INACTIVE,
     });
     return { status: 'success', message: 'Users removed Successfully' };
@@ -154,7 +159,7 @@ export class UserService {
     status: string,
     companyId: string,
   ) {
-    const [data, total] = await this.userRepository.findAndCount({
+    const [data, total] = await this.userRepo.findAll({
       where: {
         companyId,
         status,
@@ -166,7 +171,17 @@ export class UserService {
     return { data, total };
   }
   async restoreUsersBulk(companyId: string, ids: string[]) {
-    const usersUpdate = await this.userRepository.update(
+    const users = await this.userRepo.findByCondition({
+      where: { id: In(ids), companyId: Not(companyId) },
+    });
+    if (users) {
+      throw new HttpException(
+        `User with email: ${users.email} Not Found in this company`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const usersUpdate = await this.userRepo.update(
       { id: In(ids), status: Status.INACTIVE },
       {
         status: Status.ACTIVE,
@@ -180,23 +195,26 @@ export class UserService {
     user: UpdateCompanyUser,
     userId: string,
   ) {
-    const userExists = await this.userRepository.findOne({
-      where: { id: userId },
+    const userExists = await this.userRepo.findByCondition({
+      where: { id: userId, companyId },
     });
 
     if (!userExists) {
-      throw new HttpException('User Not Found', 400);
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
     if (user.email && userExists.email !== user.email) {
-      const emailExists = await this.userRepository.findOne({
+      const emailExists = await this.userRepo.findByCondition({
         where: { email: user.email },
       });
       if (emailExists) {
-        throw new HttpException('This Email Already Used', 400);
+        throw new HttpException(
+          'This Email Already Used',
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
-    const updatedUser = await this.userRepository.update(
+    const updatedUser = await this.userRepo.update(
       { id: userId, companyId },
       user,
     );
@@ -213,11 +231,9 @@ export class UserService {
   }
 
   async areInTheSameCompany(userIds: string[], companyId: string) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.id IN (:...userIds)', { userIds })
-      .andWhere('user.companyId != :companyId', { companyId })
-      .getOne();
+    const user = await this.userRepo.findByCondition({
+      where: { id: In(userIds), companyId: Not(companyId) },
+    });
 
     if (user) {
       return false;

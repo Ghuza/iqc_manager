@@ -5,7 +5,6 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
   Query,
 } from '@nestjs/common';
@@ -27,7 +26,7 @@ import { ProjectId, UUIDParam } from 'src/util/common/param';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Create project' })
+  @ApiOperation({ summary: UserRoles.COMPANY_ADMIN + ' Create project' })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
   @Post()
@@ -54,14 +53,14 @@ export class ProjectController {
     );
   }
 
-  @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Find all the projects' })
+  @ApiOperation({ summary: UserRoles.COMPANY_ADMIN + ' Find all the projects' })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
   @Get()
   findAll(@Query() query: ItemQuery, @CurrentUser() user: User) {
     return this.projectService.findAll(query.page, query.limit, user.companyId);
   }
-  @ApiOperation({ summary: UserRoles.PORTAL_ADMIN + ' Find one the projects' })
+  @ApiOperation({ summary: UserRoles.COMPANY_ADMIN + ' Find one the projects' })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
   @Get(':id')
@@ -70,7 +69,7 @@ export class ProjectController {
   }
 
   @ApiOperation({
-    summary: UserRoles.PORTAL_ADMIN + ' Update one the projects',
+    summary: UserRoles.COMPANY_ADMIN + ' Update one the projects',
   })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
@@ -88,7 +87,7 @@ export class ProjectController {
   }
 
   @ApiOperation({
-    summary: UserRoles.PORTAL_ADMIN + ' assign users to the projects',
+    summary: UserRoles.COMPANY_ADMIN + ' assign users to the projects',
   })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
@@ -106,7 +105,7 @@ export class ProjectController {
   }
 
   @ApiOperation({
-    summary: UserRoles.PORTAL_ADMIN + ' remove users to the projects',
+    summary: UserRoles.COMPANY_ADMIN + ' remove users to the projects',
   })
   @Roles(UserRoles.COMPANY_ADMIN)
   @UseGuards(RolesGuard)
@@ -141,5 +140,3 @@ export class ProjectController {
     );
   }
 }
-
-// getUsersAssignedToProject

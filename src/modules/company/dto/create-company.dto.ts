@@ -17,8 +17,4 @@ export class CreateCompanyDto {
   @IsString()
   @MaxLength(512)
   logo: string;
-
-  //   @ApiProperty()
-  //   @IsEnum([Status.ACTIVE, Status.INACTIVE])
-  //   status: Status;
 }
