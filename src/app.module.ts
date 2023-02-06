@@ -13,7 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { CompanyModule } from './modules/company/company.module';
 import { ProjectModule } from './modules/project/project.module';
-import { GlobalExceptionFilter } from './util/common/global-exeption.filter';
+import { GlobalExceptionFilter } from './util/common/global-exception.filter';
 import { UploadModule } from './modules/upload/upload.module';
 
 @Module({

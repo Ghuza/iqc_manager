@@ -1,26 +1,23 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Roles } from 'src/util/types/roles.enum';
 import { Status } from 'src/util/types/status.enum';
-import { Not, Repository } from 'typeorm';
+import { Not } from 'typeorm';
+import { CompanyRepository } from './company.repository';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from './entities/company.entity';
 
 @Injectable()
 export class CompanyService {
-  constructor(
-    @InjectRepository(Company)
-    private readonly companyRepository: Repository<Company>,
-  ) {}
+  constructor(private readonly companyRepo: CompanyRepository) {}
   create(createCompanyDto: CreateCompanyDto) {
-    const company = this.companyRepository.create(createCompanyDto);
-    return this.companyRepository.save(company);
+    const company = this.companyRepo.create([createCompanyDto]);
+    return this.companyRepo.save(company);
   }
 
   async findAll(page: number, limit: number) {
-    const [data, total] = await this.companyRepository.findAndCount({
+    const [data, total] = await this.companyRepo.findAll({
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -28,32 +25,44 @@ export class CompanyService {
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto, user: User) {
-    const company = await this.companyRepository.update(id, updateCompanyDto);
-    let query = {};
-    if (user.role === Roles.COMPANY_ADMIN) {
-      query = {
-        id: user.companyId,
-      };
-    } else {
-      query = {
+    if (
+      id !== user.companyId &&
+      ![Roles.COMPANY_ADMIN, Roles.PORTAL_ADMIN].includes(user.role as Roles)
+    )
+      throw new HttpException(
+        'You are not allowed to update this company',
+        HttpStatus.FORBIDDEN,
+      );
+    const company = await this.companyRepo.update(id, updateCompanyDto);
+
+    const updatedCompany = await this.companyRepo.findByCondition({
+      where: {
         id,
-      };
-    }
-    const updatedCompany = await this.findOne({
-      id,
-      ...query,
+      },
     });
-    if (!updatedCompany) throw new HttpException('Company not found', 404);
+    if (!updatedCompany)
+      throw new HttpException('Company not found', HttpStatus.NOT_FOUND);
 
     return updatedCompany;
   }
 
   async remove(id: string) {
-    const company = await this.companyRepository.update(id, {
+    const isInactive = await this.companyRepo.findByCondition({
+      where: {
+        id,
+        status: Status.INACTIVE,
+      },
+    });
+    if (isInactive)
+      throw new HttpException('Company was not found!', HttpStatus.NOT_FOUND);
+
+    const company = await this.companyRepo.update(id, {
       status: Status.INACTIVE,
     });
-    const updatedCompany = await this.findOne({
-      id,
+    const updatedCompany = await this.companyRepo.findByCondition({
+      where: {
+        id,
+      },
     });
     if (!updatedCompany) throw new HttpException('Company not found', 404);
 
@@ -61,12 +70,12 @@ export class CompanyService {
   }
 
   async findOne(options: Partial<Company>) {
-    return await this.companyRepository.findOne({
+    return await this.companyRepo.findByCondition({
       where: { ...options, status: Not(Status.INACTIVE) },
     });
   }
   async showOwnCompany(companyId: string) {
-    const company = await this.companyRepository.findOne({
+    const company = await this.companyRepo.findByCondition({
       where: { id: companyId },
     });
     return company;
